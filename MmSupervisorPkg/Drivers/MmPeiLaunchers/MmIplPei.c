@@ -818,6 +818,80 @@ ExecuteMmCoreFromMmram (
         );
 
       HobStart = GetHobList ();
+
+      {
+        EFI_PEI_HOB_POINTERS  DebugHob;
+        UINTN                 HobCount;
+
+        HobCount = 0;
+        DEBUG ((DEBUG_INFO, "%a Dumping HOB list at %p\n", __func__, HobStart));
+        for (DebugHob.Raw = (UINT8 *)HobStart; !END_OF_HOB_LIST (DebugHob); DebugHob.Raw = GET_NEXT_HOB (DebugHob)) {
+          HobCount++;
+          switch (GET_HOB_TYPE (DebugHob)) {
+            case EFI_HOB_TYPE_HANDOFF:
+              DEBUG ((DEBUG_INFO, "  [%03d] HANDOFF\n", HobCount));
+              break;
+            case EFI_HOB_TYPE_MEMORY_ALLOCATION:
+              DEBUG ((DEBUG_INFO, "  [%03d] MEMORY_ALLOCATION\n", HobCount));
+              break;
+            case EFI_HOB_TYPE_RESOURCE_DESCRIPTOR:
+              DEBUG ((DEBUG_INFO, "  [%03d] RESOURCE_DESCRIPTOR\n", HobCount));
+              break;
+            case EFI_HOB_TYPE_GUID_EXTENSION:
+              DEBUG ((DEBUG_INFO, "  [%03d] GUID_EXTENSION: %g\n", HobCount, &DebugHob.Guid->Name));
+              break;
+            case EFI_HOB_TYPE_FV:
+              DEBUG ((
+                DEBUG_INFO,
+                "  [%03d] FV:  BaseAddress = 0x%lx, Length = 0x%lx\n",
+                HobCount,
+                DebugHob.FirmwareVolume->BaseAddress,
+                DebugHob.FirmwareVolume->Length
+                ));
+              break;
+            case EFI_HOB_TYPE_FV2:
+              DEBUG ((
+                DEBUG_INFO,
+                "  [%03d] FV2: BaseAddress = 0x%lx, Length = 0x%lx, FvName = %g, FileName = %g\n",
+                HobCount,
+                DebugHob.FirmwareVolume2->BaseAddress,
+                DebugHob.FirmwareVolume2->Length,
+                &DebugHob.FirmwareVolume2->FvName,
+                &DebugHob.FirmwareVolume2->FileName
+                ));
+              break;
+            case EFI_HOB_TYPE_FV3:
+              DEBUG ((
+                DEBUG_INFO,
+                "  [%03d] FV3: BaseAddress = 0x%lx, Length = 0x%lx, AuthStatus = 0x%x, Extracted = %d, FvName = %g, FileName = %g\n",
+                HobCount,
+                DebugHob.FirmwareVolume3->BaseAddress,
+                DebugHob.FirmwareVolume3->Length,
+                DebugHob.FirmwareVolume3->AuthenticationStatus,
+                DebugHob.FirmwareVolume3->ExtractedFv,
+                &DebugHob.FirmwareVolume3->FvName,
+                &DebugHob.FirmwareVolume3->FileName
+                ));
+              break;
+            case EFI_HOB_TYPE_CPU:
+              DEBUG ((DEBUG_INFO, "  [%03d] CPU\n", HobCount));
+              break;
+            case EFI_HOB_TYPE_MEMORY_POOL:
+              DEBUG ((DEBUG_INFO, "  [%03d] MEMORY_POOL\n", HobCount));
+              break;
+            case EFI_HOB_TYPE_UNUSED:
+              DEBUG ((DEBUG_INFO, "  [%03d] UNUSED\n", HobCount));
+              break;
+            default:
+              DEBUG ((DEBUG_INFO, "  [%03d] UNKNOWN (Type = 0x%04x)\n", HobCount, GET_HOB_TYPE (DebugHob)));
+              break;
+          }
+        }
+
+        DEBUG ((DEBUG_INFO, "%a End of HOB dump - Total HOBs: %d\n", __func__, HobCount));
+      }
+
+
  #ifdef MDE_CPU_IA32
       //
       // Thunk to x64 then execute image , and then come back...
